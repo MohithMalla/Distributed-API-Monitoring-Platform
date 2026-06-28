@@ -563,8 +563,8 @@ Passionate about
 - System Design
 - Scalable Software Engineering
 
-📧 Email: your-email@example.com
+📧 Email: mallamohith20@gmail.com
 
-🔗 LinkedIn: https://linkedin.com/in/your-profile
+🔗 LinkedIn:https://www.linkedin.com/in/mohithmalla/
 
 ⭐ If you found this project useful, don't forget to **Star** the repository!
