@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DEVELOPER
+  VIEWER
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum MonitorStatus {
+  UP
+  DOWN
+  
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  password     String
+  role         Role      @default(DEVELOPER)
+  refreshToken String?
+
+  projects     Project[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  monitors Monitor[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Monitor {
+  id                    String         @id @default(uuid())
+
+  name                  String
+  url                   String
+  method                HttpMethod
+
+  headers               Json?
+  body                  Json?
+
+  timeout               Int            @default(5000)
+  intervalSeconds       Int
+
+  expectedStatus        Int
+  expectedResponse      String?
+
+  isActive              Boolean        @default(true)
+
+  lastCheckedAt         DateTime?
+  lastStatus            MonitorStatus? @default(DOWN)
+  averageLatency        Float?
+
+  consecutiveFailures   Int            @default(0)
+
+  sslMonitoring         Boolean        @default(false)
+
+  projectId             String
+  project               Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  logs                  MonitoringLog[]
+  incidents             Incident[]
+
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model MonitoringLog {
+
+  id            String   @id @default(uuid())
+
+  monitorId     String
+
+  monitor       Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  statusCode    Int?
+
+  responseTime  Float
+
+  isHealthy     Boolean
+
+  errorMessage  String?
+
+  checkedAt     DateTime @default(now())
+
+}
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
+}
+
+model Incident {
+  id          String         @id @default(uuid())
+
+  monitorId   String
+  monitor     Monitor        @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  status      IncidentStatus @default(OPEN)
+
+  reason      String
+
+  startedAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
